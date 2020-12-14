@@ -26,6 +26,55 @@ function love.load()
 	score = 0
 	nbTirMax = 8
 	
+	-- Definition des asteroides
+	asteroids = {
+        {
+            x = 150,
+            y = 150,
+        },
+        {
+            x = screenWidth - 150,
+            y = 150,
+        },
+        {
+            x = screenWidth / 2,
+            y = screenHeight - 150,
+        },
+    }
+	
+	asteroidRadius = 120
+	tailleTir = 5
+	
+	-- Configuration des asteroides
+	configAsteroides = {
+        {
+            vitesse = 120,
+            rayon = 30,
+			score = 800
+        },
+        {
+            vitesse = 70,
+            rayon = 50,
+			score = 400
+        },
+        {
+            vitesse = 50,
+            rayon = 70,
+			score = 200
+        },
+        {
+            vitesse = 20,
+            rayon = 120,
+			score = 100
+        }
+    }
+	
+		-- Initialisation des directions
+	for asteroidIndex, asteroid in ipairs(asteroids) do
+        asteroid.angle = love.math.random() * (2 * math.pi)
+		asteroid.niveau = #configAsteroides
+    end
+	
 end
 
 function love.draw()
@@ -44,11 +93,14 @@ function love.draw()
 			-- Tirs
 			for tirIndex, tir in ipairs(tirs) do
                 love.graphics.setColor(0, 1, 0)
-                love.graphics.circle('fill', tir.x, tir.y, 5)
+                love.graphics.circle('fill', tir.x, tir.y, tailleTir)
             end
 	
 			-- TODO Asteroides
-
+			for asteroidIndex, asteroid in ipairs(asteroids) do
+                love.graphics.setColor(1, 1, 0)
+                love.graphics.circle('fill', asteroid.x, asteroid.y, configAsteroides[asteroid.niveau].rayon)
+            end
 	
 
 			-- nombre de vies
@@ -62,7 +114,7 @@ function love.draw()
 
 			end
 			
-			-- TODO Score
+			-- Score
 			love.graphics.print("Score  : " .. score, screenWidth, screenHeight, 0, 1, 1, screenWidth / 4, 50)
 			
 	    end
@@ -72,6 +124,11 @@ end
 
 
 function love.update(dt)
+
+	-- Contrôle des collisions - Merci Pythagore
+	local function checkCollision(aX, aY, aRadius, bX, bY, bRadius)
+        return (aX - bX)^2 + (aY - bY)^2 <= (aRadius + bRadius)^2
+    end
 
 	-- Rotation vers la droite
 	if love.keyboard.isDown('right') then
@@ -113,6 +170,75 @@ function love.update(dt)
 			tir.y = (tir.y + math.sin(tir.r) * vitesseTir * dt) % screenHeight
 		end
     end
+	
+	-- Calcul du déplacement des asteroides
+	for asteroidIndex, asteroid in ipairs(asteroids) do
+        asteroid.x = (asteroid.x + math.cos(asteroid.angle)
+            * configAsteroides[asteroid.niveau].vitesse * dt) % screenWidth
+        asteroid.y = (asteroid.y + math.sin(asteroid.angle)
+            * configAsteroides[asteroid.niveau].vitesse * dt) % screenHeight
+			
+		-- Contrôle collisions avec le vaisseau
+		if checkCollision(
+            playerX, playerY, playerSize,
+            asteroid.x, asteroid.y, configAsteroides[asteroid.niveau].rayon
+        ) then
+            love.load()
+            break
+        end
+		
+		-- Contrôle collisions avec les tirs
+		for tirIndex, tir in ipairs(tirs) do
+			if checkCollision(
+				tir.x, tir.y, tailleTir,
+				asteroid.x, asteroid.y, configAsteroides[asteroid.niveau].rayon
+			) then
+				-- Metttre à jour le score
+				score = score + configAsteroides[asteroid.niveau].score
+			
+				-- Retirer le Tir
+				table.remove(tirs, tirIndex)
+				
+				-- Générer de nouveaux asteroides
+				if asteroid.niveau > 1 then
+				
+					local angle1 = love.math.random() * (2 * math.pi)
+					local angle2 = (angle1 - 2*math.pi/3) % (2 * math.pi)
+					local angle3 = (angle1 + 2*math.pi/3) % (2 * math.pi)
+				
+					table.insert(asteroids, {
+						x = asteroid.x,
+						y = asteroid.y,
+						angle = angle1,
+						niveau = asteroid.niveau - 1
+					})
+					
+					table.insert(asteroids, {
+						x = asteroid.x,
+						y = asteroid.y,
+						angle = angle2,
+						niveau = asteroid.niveau - 1
+					})
+					
+					
+					table.insert(asteroids, {
+						x = asteroid.x,
+						y = asteroid.y,
+						angle = angle3,
+						niveau = asteroid.niveau - 1
+					})
+				end
+				
+				-- Retirer l'asteroid
+				table.remove(asteroids, asteroidIndex)
+				break
+			end
+		end
+		
+		
+    end
+	
+	
 
 end
 
