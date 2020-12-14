@@ -18,8 +18,13 @@ function love.load()
 	
 	vitesseTir = 500
 	dureeTir = 4
+	currVies = 2
 	
 	tirs = {}
+	
+	love.graphics.setFont(love.graphics.newFont(32))
+	score = 0
+	nbTirMax = 8
 	
 end
 
@@ -29,26 +34,39 @@ function love.draw()
         for x = -1, 1 do
             love.graphics.origin()
             love.graphics.translate(x * screenWidth, y * screenHeight)
+			
+			-- RAZ des couleurs
+			love.graphics.setColor(255, 255, 255, 255)
 
 			-- Dessiner la vaisseau
 			love.graphics.draw(playerShip, playerX, playerY, playerR, 1, 1, playerSize, playerSize)
 	
-			-- TODO Tirs
+			-- Tirs
 			for tirIndex, tir in ipairs(tirs) do
                 love.graphics.setColor(0, 1, 0)
                 love.graphics.circle('fill', tir.x, tir.y, 5)
             end
 	
-			-- TODO Asteriodes
-        end
-    end
-	
+			-- TODO Asteroides
 
 	
-	-- TODO nombre de vies
-	
-	-- TODO Score
-	love.graphics.print(screenWidth, 600, 800)
+
+			-- nombre de vies
+			for nbVies = 0, currVies do
+				
+				-- RAZ des couleurs
+				love.graphics.setColor(255, 255, 255, 255)
+
+				-- Dessiner la vaisseau our les vies
+				love.graphics.draw(playerShip, nbVies * playerSize, screenHeight, (1.5 * math.pi), 0.25, 0.25,  - (playerSize), -(playerSize))
+
+			end
+			
+			-- TODO Score
+			love.graphics.print("Score  : " .. score, screenWidth, screenHeight, 0, 1, 1, screenWidth / 4, 50)
+			
+	    end
+    end
 	
 end
 
@@ -107,7 +125,7 @@ function love.keypressed(key)
 	end
 	
 	-- ESPACE => Tir
-	 if key == 'space' then
+	 if key == 'space' and #tirs < nbTirMax then
         table.insert(tirs, {
 			x = playerX + math.cos(playerR) * playerSize,
             y = playerY + math.sin(playerR) * playerSize,
