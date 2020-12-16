@@ -2,6 +2,7 @@ function love.load()
 	-- Chargement des éléments du jeu
 	playerShip = love.graphics.newImage("resources/player.png")
 	
+	
 	-- Definition des variables globales
 	version = 0.001
 	screenWidth, screenHeight = love.graphics.getDimensions( )
@@ -215,6 +216,10 @@ function love.update(dt)
 			) then
 				-- Metttre à jour le score
 				score = score + configAsteroides[asteroid.niveau].score
+				
+				--Son de l'explision
+				local explosionSound = love.audio.newSource("resources/explosion.mp3", "static")
+				explosionSound:play()
 			
 				-- Retirer le Tir
 				table.remove(tirs, tirIndex)
@@ -269,12 +274,7 @@ function love.keypressed(key)
 	
 	-- ESPACE => Tir
 	 if key == 'space' and currVies >= 0 and #tirs < nbTirMax then
-        table.insert(tirs, {
-			x = playerX + math.cos(playerR) * playerSize,
-            y = playerY + math.sin(playerR) * playerSize,
-			r = playerR,
-			duree = dureeTir
-        })
+        fireLaser()
     end
 	
 	-- ESPACE => lancement partie
@@ -291,12 +291,7 @@ function love.gamepadpressed(joystick, button)
 	
 	-- ESPACE => Tir
 	 if button == 'a' and currVies >= 0 and #tirs < nbTirMax then
-        table.insert(tirs, {
-			x = playerX + math.cos(playerR) * playerSize,
-            y = playerY + math.sin(playerR) * playerSize,
-			r = playerR,
-			duree = dureeTir
-        })
+        fireLaser()
     end
 	
 	-- ESPACE => lancement partie
@@ -304,6 +299,20 @@ function love.gamepadpressed(joystick, button)
         resetGame()
     end
 	
+end
+
+function fireLaser()
+
+	
+	local laserSound = love.audio.newSource("resources/laser.ogg", "static")
+
+	table.insert(tirs, {
+		x = playerX + math.cos(playerR) * playerSize,
+        y = playerY + math.sin(playerR) * playerSize,
+		r = playerR,
+		duree = dureeTir
+    })
+	laserSound:play()
 end
 
 -- Fonction pour relancer la partie
