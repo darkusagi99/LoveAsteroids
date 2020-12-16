@@ -4,5 +4,5 @@ function love.conf(t)
     t.window.fullscreen = true
 	
 	-- Desactivation de la physique
-	t.modules.physics = true 
+	t.modules.physics = false 
 end
