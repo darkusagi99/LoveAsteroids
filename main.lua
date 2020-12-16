@@ -74,6 +74,10 @@ function love.load()
 		asteroid.niveau = #configAsteroides
     end
 	
+	-- Gestion du joystick
+	local joysticks = love.joystick.getJoysticks()
+    joystick = joysticks[1]
+	lastbutton = "none"
 	
 end
 
@@ -121,6 +125,13 @@ function love.draw()
 			end
 		end
 	else
+	
+		--local joysticks = love.joystick.getJoysticks()
+		--for i, joystick in ipairs(joysticks) do
+		--	love.graphics.print(joystick:getName(), 10, (i + 1) * 20)
+		--end
+		
+		--love.graphics.print("Last gamepad button pressed: "..lastbutton, 10, 10)
 
 		-- Texte 
 		love.graphics.print("Appuyer sur Espace pour commencer", screenWidth / 4, screenHeight / 2, 0, 1, 1, 0, 0)
@@ -140,12 +151,12 @@ function love.update(dt)
     end
 
 	-- Rotation vers la droite
-	if love.keyboard.isDown('right') then
+	if love.keyboard.isDown('right') or joystick:isGamepadDown("dpright") then
          playerR = playerR + vitesseR * dt
     end
 	
 	-- Idem vers la gauche
-	if love.keyboard.isDown('left') then
+	if love.keyboard.isDown('left') or joystick:isGamepadDown("dpleft") then
          playerR = playerR - vitesseR * dt
     end
 	
@@ -154,7 +165,7 @@ function love.update(dt)
 
 	-- Déplacement vaisseau
 	-- Calul de la vitesse
-	if love.keyboard.isDown('up') then
+	if love.keyboard.isDown('up')  or joystick:isGamepadDown("dpup") then
         local vitesseMax = 100
         playerSpeedX = playerSpeedX + math.cos(playerR) * vitesseMax * dt
         playerSpeedY = playerSpeedY + math.sin(playerR) * vitesseMax * dt
@@ -268,6 +279,28 @@ function love.keypressed(key)
 	
 	-- ESPACE => lancement partie
 	 if key == 'space' and currVies < 0 then
+        resetGame()
+    end
+	
+end
+
+-- Idem pour le Joystick
+function love.gamepadpressed(joystick, button)
+    lastbutton = button
+	
+	
+	-- ESPACE => Tir
+	 if button == 'a' and currVies >= 0 and #tirs < nbTirMax then
+        table.insert(tirs, {
+			x = playerX + math.cos(playerR) * playerSize,
+            y = playerY + math.sin(playerR) * playerSize,
+			r = playerR,
+			duree = dureeTir
+        })
+    end
+	
+	-- ESPACE => lancement partie
+	 if button == 'a' and currVies < 0 then
         resetGame()
     end
 	
