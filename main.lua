@@ -77,7 +77,11 @@ function love.load()
 	
 	-- Gestion du joystick
 	local joysticks = love.joystick.getJoysticks()
-    joystick = joysticks[1]
+	if #joysticks > 0 then
+		joystick = joysticks[1]
+	else
+		joystick = false
+	end
 	lastbutton = "none"
 	
 end
@@ -102,7 +106,7 @@ function love.draw()
 					love.graphics.circle('fill', tir.x, tir.y, tailleTir)
 				end
 		
-				-- TODO Asteroides
+				-- Asteroides
 				for asteroidIndex, asteroid in ipairs(asteroids) do
 					love.graphics.setColor(1, 1, 0)
 					love.graphics.circle('fill', asteroid.x, asteroid.y, configAsteroides[asteroid.niveau].rayon)
@@ -152,12 +156,12 @@ function love.update(dt)
     end
 
 	-- Rotation vers la droite
-	if love.keyboard.isDown('right') or joystick:isGamepadDown("dpright") then
+	if love.keyboard.isDown('right') or (joystick and joystick:isGamepadDown("dpright")) then
          playerR = playerR + vitesseR * dt
     end
 	
 	-- Idem vers la gauche
-	if love.keyboard.isDown('left') or joystick:isGamepadDown("dpleft") then
+	if love.keyboard.isDown('left') or (joystick and joystick:isGamepadDown("dpleft")) then
          playerR = playerR - vitesseR * dt
     end
 	
@@ -166,7 +170,7 @@ function love.update(dt)
 
 	-- Déplacement vaisseau
 	-- Calul de la vitesse
-	if love.keyboard.isDown('up')  or joystick:isGamepadDown("dpup") then
+	if love.keyboard.isDown('up') or (joystick and joystick:isGamepadDown("dpup")) then
         local vitesseMax = 100
         playerSpeedX = playerSpeedX + math.cos(playerR) * vitesseMax * dt
         playerSpeedY = playerSpeedY + math.sin(playerR) * vitesseMax * dt
