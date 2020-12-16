@@ -27,6 +27,27 @@ function CreateTexturedCircle(image)
         return mesh
 end
 
+-- Creation du canevas de l'explosion
+function initExplosionCanvas (width, height)
+	local c = love.graphics.newCanvas(width, height)
+	love.graphics.setCanvas(c) -- Switch to drawing on canvas 'c'
+	love.graphics.setBlendMode("alpha")
+	love.graphics.setColor(255, 64, 64, 255)
+	love.graphics.circle("fill", width / 2, height / 2, 10, 100)
+	love.graphics.setCanvas() -- Switch back to drawing on main screen
+	return c
+end
+
+-- Systeme de particules de l'explosion
+function initPartSys (image, maxParticles)
+	local ps = love.graphics.newParticleSystem(image, maxParticles)
+	ps:setParticleLifetime(0.1, 0.5) -- (min, max)
+	ps:setSizeVariation(1)
+	ps:setLinearAcceleration(-400, -400, 400, 400) -- (minX, minY, maxX, maxY)
+	ps:setColors(255, 64, 64, 255, 255, 0, 0, 255) -- (r1, g1, b1, a1, r2, g2, b2, a2 ...)
+	return ps
+end
+
 function love.load()
 	-- Chargement des éléments du jeu
 	playerShip = love.graphics.newImage("resources/player.png")
@@ -104,6 +125,10 @@ function love.load()
 	end
 	lastbutton = "none"
 	
+	-- Canevas de l'explosion
+	canvas = initExplosionCanvas(20, 40)
+	explosions = {}
+	
 end
 
 function love.draw()
@@ -145,6 +170,15 @@ function love.draw()
 
 				end
 				
+				-- Explosions
+				for expIndex, explosion in ipairs(explosions) do
+					-- Try different blend modes out - https://love2d.org/wiki/BlendMode
+					love.graphics.setBlendMode("add")
+	
+					-- Redraw particle system every frame
+					love.graphics.draw(explosion.ps)
+				end
+				
 				-- Score
 				love.graphics.print("Score  : " .. score, screenWidth, screenHeight, 0, 1, 1, screenWidth / 4, 50)
 				
@@ -170,6 +204,19 @@ end
 
 
 function love.update(dt)
+
+	-- Animation des explosions
+    for expIndex, explosion in ipairs(explosions) do
+		-- MAJ du système
+		explosion.ps:update(dt)
+		explosion.lt = explosion.lt - dt
+		
+		if explosion.lt < 0 then
+			table.remove(explosions, expIndex)
+		
+		end
+		
+    end
 
 	-- Contrôle des collisions - Merci Pythagore
 	local function checkCollision(aX, aY, aRadius, bX, bY, bRadius)
@@ -248,6 +295,13 @@ function love.update(dt)
 				--Son de l'explision
 				local explosionSound = love.audio.newSource("resources/explosion.mp3", "static")
 				explosionSound:play()
+				
+				-- Effet explision
+				currentExplosion = initPartSys (canvas, 1500)
+				currentExplosion:setPosition(asteroid.x, asteroid.y)
+				currentExplosion:setEmitterLifetime(0.25)
+				currentExplosion:setEmissionRate(3000)
+				table.insert(explosions, {ps = currentExplosion, lt = 2})
 			
 				-- Retirer le Tir
 				table.remove(tirs, tirIndex)
@@ -292,6 +346,7 @@ function love.update(dt)
 		end
 		
     end
+	
 
 end
 
