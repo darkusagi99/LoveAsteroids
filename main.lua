@@ -60,18 +60,6 @@ function love.load()
 	
 	-- Definition des asteroides
 	asteroids = {
-        {
-            x = 150,
-            y = 150,
-        },
-        {
-            x = screenWidth - 150,
-            y = 150,
-        },
-        {
-            x = screenWidth / 2,
-            y = screenHeight - 150,
-        },
     }
 	
 	asteroidRadius = 120
@@ -141,7 +129,7 @@ function love.draw()
 				-- Asteroides
 				for asteroidIndex, asteroid in ipairs(asteroids) do
 					love.graphics.setColor(1, 1, 0)
-					love.graphics.draw(asteroidMesh, asteroid.x, asteroid.y, 0, configAsteroides[asteroid.niveau].rayon, configAsteroides[asteroid.niveau].rayon)
+					love.graphics.draw(asteroidMesh, asteroid.x, asteroid.y, asteroid.r, configAsteroides[asteroid.niveau].rayon, configAsteroides[asteroid.niveau].rayon)
 					--love.graphics.circle(asteroidMesh, asteroid.x, asteroid.y, configAsteroides[asteroid.niveau].rayon)
 				end
 		
@@ -236,6 +224,9 @@ function love.update(dt)
         asteroid.y = (asteroid.y + math.sin(asteroid.angle)
             * configAsteroides[asteroid.niveau].vitesse * dt) % screenHeight
 			
+		-- Rotation asteroid
+		asteroid.r = asteroid.r + dt
+			
 		-- Contrôle collisions avec le vaisseau
 		if checkCollision(
             playerX, playerY, playerSize,
@@ -272,6 +263,7 @@ function love.update(dt)
 						x = asteroid.x,
 						y = asteroid.y,
 						angle = angle1,
+						r = angle1,
 						niveau = asteroid.niveau - 1
 					})
 					
@@ -279,6 +271,7 @@ function love.update(dt)
 						x = asteroid.x,
 						y = asteroid.y,
 						angle = angle2,
+						r = angle2,
 						niveau = asteroid.niveau - 1
 					})
 					
@@ -287,6 +280,7 @@ function love.update(dt)
 						x = asteroid.x,
 						y = asteroid.y,
 						angle = angle3,
+						r = angle3,
 						niveau = asteroid.niveau - 1
 					})
 				end
@@ -382,14 +376,17 @@ function newLife()
         {
             x = 150,
             y = 150,
+			r = 0
         },
         {
             x = screenWidth - 150,
             y = 150,
+			r = 0
         },
         {
             x = screenWidth / 2,
             y = screenHeight - 150,
+			r = 0
         },
     }
 	
