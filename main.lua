@@ -1,4 +1,3 @@
-
 function love.load()
 	-- Chargement des éléments du jeu
 	playerShip = love.graphics.newImage("resources/player.png")
@@ -18,7 +17,7 @@ function love.load()
 	
 	vitesseTir = 500
 	dureeTir = 4
-	currVies = 2
+	currVies = -1
 	
 	tirs = {}
 	
@@ -75,50 +74,60 @@ function love.load()
 		asteroid.niveau = #configAsteroides
     end
 	
+	
 end
 
 function love.draw()
 
-	for y = -1, 1 do
-        for x = -1, 1 do
-            love.graphics.origin()
-            love.graphics.translate(x * screenWidth, y * screenHeight)
-			
-			-- RAZ des couleurs
-			love.graphics.setColor(255, 255, 255, 255)
-
-			-- Dessiner la vaisseau
-			love.graphics.draw(playerShip, playerX, playerY, playerR, 1, 1, playerSize, playerSize)
-	
-			-- Tirs
-			for tirIndex, tir in ipairs(tirs) do
-                love.graphics.setColor(0, 1, 0)
-                love.graphics.circle('fill', tir.x, tir.y, tailleTir)
-            end
-	
-			-- TODO Asteroides
-			for asteroidIndex, asteroid in ipairs(asteroids) do
-                love.graphics.setColor(1, 1, 0)
-                love.graphics.circle('fill', asteroid.x, asteroid.y, configAsteroides[asteroid.niveau].rayon)
-            end
-	
-
-			-- nombre de vies
-			for nbVies = 0, currVies do
+	if currVies >= 0 then
+		for y = -1, 1 do
+			for x = -1, 1 do
+				love.graphics.origin()
+				love.graphics.translate(x * screenWidth, y * screenHeight)
 				
 				-- RAZ des couleurs
 				love.graphics.setColor(255, 255, 255, 255)
 
-				-- Dessiner la vaisseau our les vies
-				love.graphics.draw(playerShip, nbVies * playerSize, screenHeight, (1.5 * math.pi), 0.25, 0.25,  - (playerSize), -(playerSize))
+				-- Dessiner la vaisseau
+				love.graphics.draw(playerShip, playerX, playerY, playerR, 1, 1, playerSize, playerSize)
+		
+				-- Tirs
+				for tirIndex, tir in ipairs(tirs) do
+					love.graphics.setColor(0, 1, 0)
+					love.graphics.circle('fill', tir.x, tir.y, tailleTir)
+				end
+		
+				-- TODO Asteroides
+				for asteroidIndex, asteroid in ipairs(asteroids) do
+					love.graphics.setColor(1, 1, 0)
+					love.graphics.circle('fill', asteroid.x, asteroid.y, configAsteroides[asteroid.niveau].rayon)
+				end
+		
 
+				-- nombre de vies
+				for nbVies = 0, currVies do
+					
+					-- RAZ des couleurs
+					love.graphics.setColor(255, 255, 255, 255)
+
+					-- Dessiner la vaisseau our les vies
+					love.graphics.draw(playerShip, nbVies * playerSize, screenHeight, (1.5 * math.pi), 0.25, 0.25,  - (playerSize), -(playerSize))
+
+				end
+				
+				-- Score
+				love.graphics.print("Score  : " .. score, screenWidth, screenHeight, 0, 1, 1, screenWidth / 4, 50)
+				
 			end
-			
-			-- Score
-			love.graphics.print("Score  : " .. score, screenWidth, screenHeight, 0, 1, 1, screenWidth / 4, 50)
-			
-	    end
-    end
+		end
+	else
+
+		-- Texte 
+		love.graphics.print("Appuyer sur Espace pour commencer", screenWidth / 4, screenHeight / 2, 0, 1, 1, 0, 0)
+		
+		-- Score
+		love.graphics.print("Score  : " .. score, screenWidth, screenHeight, 0, 1, 1, screenWidth / 4, 50)
+	end
 	
 end
 
@@ -183,7 +192,7 @@ function love.update(dt)
             playerX, playerY, playerSize,
             asteroid.x, asteroid.y, configAsteroides[asteroid.niveau].rayon
         ) then
-            love.load()
+            newLife()
             break
         end
 		
@@ -235,10 +244,7 @@ function love.update(dt)
 			end
 		end
 		
-		
     end
-	
-	
 
 end
 
@@ -251,7 +257,7 @@ function love.keypressed(key)
 	end
 	
 	-- ESPACE => Tir
-	 if key == 'space' and #tirs < nbTirMax then
+	 if key == 'space' and currVies >= 0 and #tirs < nbTirMax then
         table.insert(tirs, {
 			x = playerX + math.cos(playerR) * playerSize,
             y = playerY + math.sin(playerR) * playerSize,
@@ -260,4 +266,61 @@ function love.keypressed(key)
         })
     end
 	
+	-- ESPACE => lancement partie
+	 if key == 'space' and currVies < 0 then
+        resetGame()
+    end
+	
 end
+
+-- Fonction pour relancer la partie
+function resetGame()
+
+	currVies = 3
+	score = 0
+	newLife()
+
+end
+
+
+
+-- Fonction pour relancer la partie
+function newLife()
+
+	currVies = currVies - 1
+
+	-- Definition des variables globales
+	playerX = screenWidth / 2
+	playerY = screenHeight / 2
+	playerSpeedX = 0
+	playerSpeedY = 0
+	playerR = math.pi / 2
+	
+	tirs = {}
+	
+	-- Definition des asteroides
+	asteroids = {
+        {
+            x = 150,
+            y = 150,
+        },
+        {
+            x = screenWidth - 150,
+            y = 150,
+        },
+        {
+            x = screenWidth / 2,
+            y = screenHeight - 150,
+        },
+    }
+	
+	
+	-- Initialisation des directions
+	for asteroidIndex, asteroid in ipairs(asteroids) do
+        asteroid.angle = love.math.random() * (2 * math.pi)
+		asteroid.niveau = #configAsteroides
+    end
+
+end
+
+
