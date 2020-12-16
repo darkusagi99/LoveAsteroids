@@ -1,7 +1,39 @@
+function CreateTexturedCircle(image)
+	segments = segments or 40
+	local vertices = {}
+ 
+	-- The first vertex is at the center, and has a red tint. We're centering the circle around the origin (0, 0).
+	table.insert(vertices, {0, 0, 0.5, 0.5, 255, 255, 255})
+ 
+	-- Create the vertices at the edge of the circle.
+	for i=0, segments do
+		local angle = (i / segments) * math.pi * 2
+ 
+		-- Unit-circle.
+		local x = math.cos(angle)
+		local y = math.sin(angle)
+ 
+		-- Our position is in the range of [-1, 1] but we want the texture coordinate to be in the range of [0, 1].
+		local u = (x + 1) * 0.5
+		local v = (y + 1) * 0.5
+ 
+		-- The per-vertex color defaults to white.
+		table.insert(vertices, {x, y, u, v})
+	end
+ 
+	-- The "fan" draw mode is perfect for our circle.
+	local mesh = love.graphics.newMesh(vertices, "fan", "dynamic")
+        mesh:setTexture(image)
+        return mesh
+end
+
 function love.load()
 	-- Chargement des éléments du jeu
 	playerShip = love.graphics.newImage("resources/player.png")
+	asteroidTexture = love.graphics.newImage("resources/asteroid.png")
 	
+	
+	asteroidMesh = CreateTexturedCircle(asteroidTexture)
 	
 	-- Definition des variables globales
 	version = 0.001
@@ -109,7 +141,8 @@ function love.draw()
 				-- Asteroides
 				for asteroidIndex, asteroid in ipairs(asteroids) do
 					love.graphics.setColor(1, 1, 0)
-					love.graphics.circle('fill', asteroid.x, asteroid.y, configAsteroides[asteroid.niveau].rayon)
+					love.graphics.draw(asteroidMesh, asteroid.x, asteroid.y, 0, configAsteroides[asteroid.niveau].rayon, configAsteroides[asteroid.niveau].rayon)
+					--love.graphics.circle(asteroidMesh, asteroid.x, asteroid.y, configAsteroides[asteroid.niveau].rayon)
 				end
 		
 
